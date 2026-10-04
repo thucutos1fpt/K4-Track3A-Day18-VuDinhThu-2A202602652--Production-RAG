@@ -1,0 +1,81 @@
+{
+  "aggregate": {
+    "faithfulness": 0.7625,
+    "answer_relevancy": 0.7074486753960214,
+    "context_precision": 0.9416666666137499,
+    "context_recall": 0.7166666666666666
+  },
+  "num_questions": 20,
+  "failures": [
+    {
+      "question": "Nhân viên thử việc có được nghỉ phép năm không?",
+      "worst_metric": "faithfulness",
+      "score": 0.5,
+      "diagnosis": "The answer is not sufficiently grounded in retrieved context.",
+      "suggested_fix": "Tighten the answer prompt, require citations, and lower temperature."
+    },
+    {
+      "question": "Nhân viên thử việc có được hưởng bảo hiểm sức khỏe PVI không?",
+      "worst_metric": "faithfulness",
+      "score": 0.5,
+      "diagnosis": "The answer is not sufficiently grounded in retrieved context.",
+      "suggested_fix": "Tighten the answer prompt, require citations, and lower temperature."
+    },
+    {
+      "question": "Nếu cần mua một chiếc laptop 30 triệu cho nhân viên mới, ai phê duyệt và cần gì từ phòng CNTT?",
+      "worst_metric": "answer_relevancy",
+      "score": 0.5208,
+      "diagnosis": "The answer does not directly address the question.",
+      "suggested_fix": "Refine the prompt template and validate the answer against the query."
+    },
+    {
+      "question": "Nghỉ phép không lương 20 ngày cần ai phê duyệt?",
+      "worst_metric": "context_recall",
+      "score": 0.5679,
+      "diagnosis": "Relevant evidence was not retrieved.",
+      "suggested_fix": "Improve chunking, add BM25 coverage, or broaden retrieval top-k."
+    },
+    {
+      "question": "Nhân viên tạm ứng 15 triệu, sau 20 ngày mới thanh toán. Bị phạt bao nhiêu?",
+      "worst_metric": "faithfulness",
+      "score": 0.5823,
+      "diagnosis": "The answer is not sufficiently grounded in retrieved context.",
+      "suggested_fix": "Tighten the answer prompt, require citations, and lower temperature."
+    },
+    {
+      "question": "Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt?",
+      "worst_metric": "context_recall",
+      "score": 0.5961,
+      "diagnosis": "Relevant evidence was not retrieved.",
+      "suggested_fix": "Improve chunking, add BM25 coverage, or broaden retrieval top-k."
+    },
+    {
+      "question": "Lương thử việc của nhân viên Junior mức cao nhất là bao nhiêu?",
+      "worst_metric": "context_recall",
+      "score": 0.7015,
+      "diagnosis": "Relevant evidence was not retrieved.",
+      "suggested_fix": "Improve chunking, add BM25 coverage, or broaden retrieval top-k."
+    },
+    {
+      "question": "Một nhân viên Senior có 9 năm thâm niên được nghỉ bao nhiêu ngày phép năm và lương trong khoảng nào?",
+      "worst_metric": "context_recall",
+      "score": 0.7274,
+      "diagnosis": "Relevant evidence was not retrieved.",
+      "suggested_fix": "Improve chunking, add BM25 coverage, or broaden retrieval top-k."
+    },
+    {
+      "question": "Nhân viên được tài trợ khóa học 25 triệu, nghỉ việc sau 8 tháng hoàn thành khóa học. Phải hoàn trả bao nhiêu?",
+      "worst_metric": "faithfulness",
+      "score": 0.8217,
+      "diagnosis": "The answer is not sufficiently grounded in retrieved context.",
+      "suggested_fix": "Tighten the answer prompt, require citations, and lower temperature."
+    },
+    {
+      "question": "Thông tin lương thuộc cấp độ phân loại dữ liệu nào?",
+      "worst_metric": "context_recall",
+      "score": 0.8428,
+      "diagnosis": "Relevant evidence was not retrieved.",
+      "suggested_fix": "Improve chunking, add BM25 coverage, or broaden retrieval top-k."
+    }
+  ]
+}

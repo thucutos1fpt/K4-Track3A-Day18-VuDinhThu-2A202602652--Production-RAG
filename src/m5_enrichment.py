@@ -8,7 +8,7 @@ Làm giàu chunks TRƯỚC khi embed: Summarize, HyQA, Contextual Prepend, Auto 
 Test: pytest tests/test_m5.py
 """
 
-import os, sys
+import os, sys, re
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 if hasattr(sys.stderr, "reconfigure"):
@@ -38,7 +38,7 @@ def summarize_chunk(text: str) -> str:
     Tạo summary ngắn cho chunk.
     Embed summary thay vì (hoặc cùng với) raw chunk → giảm noise.
     """
-    # TODO: Implement chunk summarization
+    # Implementation: chunk summarization.
     # if OPENAI_API_KEY:
     #     try:
     #         from openai import OpenAI
@@ -58,7 +58,9 @@ def summarize_chunk(text: str) -> str:
     # Extractive fallback (không cần API):
     # sentences = [s.strip() for s in text.replace("\n", " ").split(". ") if s.strip()]
     # return ". ".join(sentences[:2]) + "." if sentences else text
-    return text
+    # Local extractive summary: no document content leaves this machine.
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+|\n+", text) if s.strip()]
+    return " ".join(sentences[:2]) if sentences else text
 
 
 # ─── Technique 2: Hypothesis Question-Answer (HyQA) ─────
@@ -69,7 +71,7 @@ def generate_hypothesis_questions(text: str, n_questions: int = 3) -> list[str]:
     Generate câu hỏi mà chunk có thể trả lời.
     Index cả questions lẫn chunk → query match tốt hơn (bridge vocabulary gap).
     """
-    # TODO: Implement HyQA generation
+    # Implementation: HyQA generation.
     # if OPENAI_API_KEY:
     #     try:
     #         from openai import OpenAI
@@ -91,7 +93,10 @@ def generate_hypothesis_questions(text: str, n_questions: int = 3) -> list[str]:
     # import re
     # sentences = [s.strip() for s in re.split(r'[.!?\n]', text) if len(s.strip()) > 10]
     # return [f"{s.rstrip('.')}?" for s in sentences[:n_questions]]
-    return []
+    # Local HyQA fallback.  It preserves useful vocabulary for retrieval without
+    # requiring an LLM call.
+    sentences = [s.strip().rstrip(".?!") for s in re.split(r"[.!?\n]+", text) if len(s.strip()) > 10]
+    return [f"Thông tin nào được nêu về: {sentence}?" for sentence in sentences[:n_questions]]
 
 
 # ─── Technique 3: Contextual Prepend (Anthropic style) ──
@@ -102,7 +107,7 @@ def contextual_prepend(text: str, document_title: str = "") -> str:
     Prepend context giải thích chunk nằm ở đâu trong document.
     Anthropic benchmark: giảm 49% retrieval failure (alone).
     """
-    # TODO: Implement contextual prepend
+    # Implementation: contextual prepend.
     # if OPENAI_API_KEY:
     #     try:
     #         from openai import OpenAI
@@ -123,7 +128,8 @@ def contextual_prepend(text: str, document_title: str = "") -> str:
     # Simple fallback:
     # prefix = f"Trích từ {document_title}. " if document_title else ""
     # return f"{prefix}{text}"
-    return text
+    prefix = f"Trích từ tài liệu {document_title}." if document_title else "Ngữ cảnh tài liệu."
+    return f"{prefix}\n\n{text}"
 
 
 # ─── Technique 4: Auto Metadata Extraction ──────────────
@@ -133,7 +139,7 @@ def extract_metadata(text: str) -> dict:
     """
     LLM extract metadata tự động: topic, entities, date_range, category.
     """
-    # TODO: Implement auto metadata extraction
+    # Implementation: auto metadata extraction.
     # if OPENAI_API_KEY:
     #     try:
     #         import json as _json
@@ -152,7 +158,10 @@ def extract_metadata(text: str) -> dict:
     #         print(f"  ⚠️  OpenAI metadata failed: {e}")
     #
     # return {"topic": "general", "entities": [], "category": "policy", "language": "vi"}
-    return {}
+    lower_text = text.lower()
+    category = "it" if any(word in lower_text for word in ("mật khẩu", "vpn", "hệ thống")) else "hr"
+    topic = re.split(r"[.!?\n]", text.strip())[0][:120] or "general"
+    return {"topic": topic, "entities": [], "category": category, "language": "vi"}
 
 
 # ─── Combined Single-Call Mode ───────────────────────────
@@ -163,7 +172,7 @@ def _enrich_single_call(text: str, source: str) -> dict:
 
     ⚠️ Cost optimization: 1 API call thay vì 4 calls riêng lẻ.
     """
-    # TODO: Implement combined enrichment (1 call/chunk)
+    # Implementation: combined enrichment (one local pass per chunk).
     # if OPENAI_API_KEY:
     #     try:
     #         import json as _json
@@ -186,7 +195,16 @@ def _enrich_single_call(text: str, source: str) -> dict:
     #         return _json.loads(resp.choices[0].message.content)
     #     except Exception as e:
     #         print(f"  ⚠️  Enrichment API failed: {e}")
-    return {}
+    # Combined local mode mirrors the same schema as the one-call LLM mode,
+    # without transmitting document content to an external service.
+    contextual = contextual_prepend(text, source)
+    context_line = contextual.split("\n\n", 1)[0] if contextual != text else ""
+    return {
+        "summary": summarize_chunk(text),
+        "questions": generate_hypothesis_questions(text),
+        "context": context_line,
+        "metadata": extract_metadata(text),
+    }
 
 
 # ─── Full Enrichment Pipeline ────────────────────────────
